@@ -1,0 +1,35 @@
+spring:
+  application:
+    name: GestionHopital
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/hopital_db?useSSL=false&serverTimezone=UTC
+    username: root
+    password: ""
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+
+# CONFIGURATION DE L'EMAIL (Gmail)
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: aidegoomer5@gmail.com # Mets ton vrai email ici
+    password: "udmfeyurrdtftdlb" # Mets ton code de 16 caractères Google ici
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+        debug: true # Permet de voir les erreurs d'envoi dans la console
+
+server:
+  port: 8080

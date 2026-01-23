@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security6">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestion des Rendez-vous</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        .badge-attente { background-color: #ffc107; color: #000; }
+        .badge-confirme { background-color: #198754; color: #fff; }
+        .badge-annule { background-color: #dc3545; color: #fff; }
+        .card-header { background: #212529 !important; }
+    </style>
+</head>
+<body>
+    <div th:replace="~{fragments/header :: header}"></div>
+
+    <div class="container mt-4">
+        <div class="card shadow border-0">
+            <div class="card-header text-white d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">
+                    <i class="bi bi-calendar-check"></i> 
+                    <span th:text="${titrePage}">Agenda</span>
+                </h4>
+                <a sec:authorize="hasAnyAuthority('ADMIN', 'ACCUEIL')" 
+                   th:href="@{/admin/formRendezVous}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-plus-circle"></i> Nouveau RDV
+                </a>
+            </div>
+            
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle text-center">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>Heure</th>
+                                <th>Patient</th>
+                                <th>Médecin</th>
+                                <th>Statut</th>
+                                <th>Arrivée (Accueil)</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="r : ${listRDV}">
+                                <td th:text="${#dates.format(r.date, 'dd-MM-yyyy')}"></td>
+                                <td th:text="${r.heure}"></td>
+                                <td th:text="${r.patient.nom + ' ' + r.patient.prenom}"></td>
+                                <td th:text="${'Dr. ' + r.medecin.nom}"></td>
+                                <td>
+                                    <span class="badge" 
+                                          th:classappend="${r.status.name() == 'EN_ATTENTE' ? 'badge-attente' : (r.status.name() == 'CONFIRME' ? 'badge-confirme' : 'badge-annule')}" 
+                                          th:text="${r.status}"></span>
+                                </td>
+                                
+                                <td>
+                                    <div th:if="${r.status.name() == 'CONFIRME'}">
+                                        <a th:if="${!r.present}" 
+                                           sec:authorize="hasAnyAuthority('ADMIN', 'ACCUEIL')"
+                                           th:href="@{/admin/marquerPresent(id=${r.id})}" 
+                                           class="btn btn-sm btn-outline-info">
+                                            <i class="bi bi-person-check"></i> Marquer Présent
+                                        </a>
+                                        <span th:if="${r.present}" class="badge bg-info text-dark">
+                                            <i class="bi bi-check-all"></i> Patient Présent
+                                        </span>
+                                    </div>
+                                    <span th:if="${r.status.name() == 'EN_ATTENTE'}" class="text-muted small">En attente de validation</span>
+                                    <span th:if="${r.status.name() == 'ANNULE'}" class="text-danger small">RDV Annulé</span>
+                                </td>
+
+                                <td class="text-center">
+                                    <div class="btn-group">
+                                        
+                                        <a th:if="${r.status.name() == 'EN_ATTENTE'}" 
+                                           sec:authorize="hasAnyAuthority('ADMIN', 'MEDECIN')"
+                                           th:href="@{/admin/confirmerRDV(id=${r.id})}" 
+                                           class="btn btn-success btn-sm" title="Valider médicalement">
+                                            <i class="bi bi-envelope-check"></i> Valider
+                                        </a>
+
+                                        <a th:if="${r.present && r.status.name() == 'CONFIRME'}" 
+                                           sec:authorize="hasAnyAuthority('ADMIN', 'MEDECIN')"
+                                           th:href="@{/admin/demarrerConsultation(id=${r.id})}" 
+                                           class="btn btn-primary btn-sm" title="Démarrer le soin">
+                                            <i class="bi bi-stethoscope"></i> Consulter
+                                        </a>
+                                        
+                                        <button type="button" 
+                                                th:if="${r.status.name() != 'ANNULE'}" 
+                                                sec:authorize="hasAnyAuthority('ADMIN', 'ACCUEIL')"
+                                                class="btn btn-outline-danger btn-sm"
+                                                th:onclick="'ouvrirModaleAnnulation(' + ${r.id} + ')'" title="Annuler le RDV">
+                                            <i class="bi bi-x-circle"></i>
+                                        </button>
+                                        
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div th:if="${listRDV == null || listRDV.isEmpty()}" class="alert alert-light text-center border">
+                    <i class="bi bi-info-circle"></i> Aucun rendez-vous affiché pour votre profil.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="annulationModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title"><i class="bi bi-shield-exclamation"></i> Motif d'annulation</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form th:action="@{/admin/annulerRDV}" method="get">
+                    <div class="modal-body">
+                        <input type="hidden" name="id" id="rdvIdHidden">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Pourquoi annuler ce rendez-vous ?</label>
+                            <select name="motif" class="form-select" required>
+                                <option value="" disabled selected>Choisir une raison...</option>
+                                <option value="Urgence médicale">Urgence médicale</option>
+                                <option value="Médecin absent">Médecin absent</option>
+                                <option value="Erreur de planification">Erreur de planification</option>
+                                <option value="Patient a appelé pour annuler">Patient a appelé pour annuler</option>
+                                <option value="Autre raison">Autre raison...</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                        <button type="submit" class="btn btn-danger">Confirmer l'annulation</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function ouvrirModaleAnnulation(id) {
+            document.getElementById('rdvIdHidden').value = id;
+            var monModal = new bootstrap.Modal(document.getElementById('annulationModal'));
+            monModal.show();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="template">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${mode=='edit' ? 'Modifier Médecin' : 'Nouveau Médecin'}">Titre</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+</head>
+<body>
+
+    <div th:replace="~{fragments/header :: header}"></div>
+
+<div layout:fragment="content">
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card shadow border-0">
+                    <div class="card-header text-white" 
+                         th:classappend="${mode=='edit' ? 'bg-warning text-dark' : 'bg-primary'}">
+                        <h4 class="mb-0">
+                            <i th:class="${mode=='edit' ? 'bi bi-pencil-square' : 'bi bi-person-plus'}"></i> 
+                            <span th:text="${mode=='edit' ? 'Modifier le Médecin' : 'Ajouter un Nouveau Médecin'}"></span>
+                        </h4>
+                    </div>
+                    
+                    <div class="card-body p-4">
+                        <form th:action="@{/admin/saveMedecin}" method="post" enctype="multipart/form-data">
+                            
+                            <input type="hidden" name="id" th:value="${medecin.id}">
+                            <input type="hidden" name="mode" th:value="${mode}">
+
+                            <h5 class="text-primary border-bottom pb-2 mb-3">Informations Professionnelles</h5>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Nom</label>
+                                    <input type="text" name="nom" class="form-control" 
+                                           placeholder="Nom du médecin" th:value="${medecin.nom}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Prénom</label>
+                                    <input type="text" name="prenom" class="form-control" 
+                                           placeholder="Prénom du médecin" th:value="${medecin.prenom}" required>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Téléphone</label>
+                                    <input type="text" name="tel" class="form-control" 
+                                           placeholder="Ex: +229..." th:value="${medecin.tel}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Spécialité</label>
+                                    <select name="specialite" class="form-select" required>
+                                        <option value="">-- Choisir une spécialité --</option>
+                                        <option th:each="sp : ${specialites}" 
+                                                th:value="${sp.id}" 
+                                                th:text="${sp.nom}"
+                                                th:selected="${medecin.specialite != null && sp.id == medecin.specialite.id}">
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+
+                           <h5 class="text-primary border-bottom pb-2 mb-3 mt-4">Identifiants & Photo</h5>
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Photo du Médecin</label>
+                                    <input type="file" name="imageFile" class="form-control" accept="image/*" 
+                                           th:required="${mode != 'edit'}">
+                                    <small th:if="${mode=='edit'}" class="text-muted">Laisser vide pour garder l'ancienne</small>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Email (Login)</label>
+                                    <input type="email" name="email" class="form-control" 
+                                           placeholder="email@exemple.com"
+                                           th:value="${medecin.appUser != null ? medecin.appUser.email : ''}" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Mot de passe</label>
+                                    <input type="password" name="password" class="form-control" 
+                                           th:placeholder="${mode=='edit' ? 'Nouveau password (si modif)' : 'Mot de passe'}"
+                                           th:required="${mode != 'edit'}">
+                                </div>
+                            </div>
+
+                            <div class="mt-4 d-flex justify-content-end">
+                                <a th:href="@{/admin/medecins}" class="btn btn-light me-2">Annuler</a>
+                                <button type="submit" class="btn px-4"
+                                        th:classappend="${mode=='edit' ? 'btn-warning' : 'btn-primary'}"
+                                        th:text="${mode=='edit' ? 'Enregistrer les modifications' : 'Enregistrer le Médecin'}">
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</div>
+
+</body>
+</html>

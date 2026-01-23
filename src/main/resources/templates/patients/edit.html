@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Modifier Patient</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+</head>
+<body class="bg-light">
+    <div th:replace="~{fragments/header :: header}"></div>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-7">
+                <div class="card shadow border-warning">
+                    <div class="card-header bg-warning text-dark text-center">
+                        <h4 class="mb-0">Mise à jour Dossier </h4>
+                    </div>
+                    <div class="card-body p-4">
+                        <form th:action="@{/admin/save(page=${page}, keyword=${keyword})}" method="post">
+                            <input type="hidden" name="id" th:value="${patient.id}">
+                            <div class="row mb-3">
+                                <div class="col"><label class="form-label">Nom</label>
+                                <input type="text" name="nom" class="form-control" th:value="${patient.nom}"></div>
+                                <div class="col"><label class="form-label">Prénom</label>
+                                <input type="text" name="prenom" class="form-control" th:value="${patient.prenom}"></div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Email</label>
+                                <input type="email" name="email" class="form-control" th:value="${patient.email}">
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Date de Naissance</label>
+                                    <input type="date" name="dateNaissance" class="form-control" th:value="${patient.dateNaissance}">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Genre</label>
+                                    <select name="genre" class="form-select">
+                                        <option value="M" th:selected="${patient.genre == 'M'}">Masculin</option>
+                                        <option value="F" th:selected="${patient.genre == 'F'}">Féminin</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Téléphone</label>
+                                <input type="text" name="telephone" class="form-control" th:value="${patient.telephone}">
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">Adresse Résidentielle</label>
+                                <textarea name="adresse" class="form-control" rows="2" th:text="${patient.adresse}"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-warning w-100">Confirmer les modifications</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

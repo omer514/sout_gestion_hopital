@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Accès Refusé</title>
+    <link th:href="@{/css/bootstrap.min.css}" rel="stylesheet">
+</head>
+<body class="container mt-5">
+    <div class="alert alert-danger text-center">
+        <h1>403 - Accès Non Autorisé</h1>
+        <p>Vous n'avez pas les droits nécessaires pour accéder à cette page.</p>
+        <a th:href="@{/dashboard}" class="btn btn-primary">Retour au Dashboard</a>
+    </div>
+</body>
+</html>

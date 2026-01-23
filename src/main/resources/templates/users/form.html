@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Nouvel Utilisateur</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-light">
+    <div th:replace="~{fragments/header :: header}"></div>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow border-0">
+                    <div class="card-header bg-dark text-white text-center">
+                        <h4 class="mb-0"><i class="fas fa-user-plus"></i> Créer un compte Personnel</h4>
+                    </div>
+                    <div class="card-body p-4">
+                        <form th:action="@{/admin/saveUser}" method="post"  enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Nom d'utilisateur (Username)</label>
+                                <input type="text" name="username" class="form-control" required placeholder="ex: dr_martin">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Email professionnel</label>
+                                <input type="email" name="email" class="form-control" required placeholder="martin@hopital.com">
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Mot de passe</label>
+                                    <input type="password" name="password" class="form-control" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Confirmer</label>
+                                    <input type="password" name="confirmPassword" class="form-control" required>
+                                </div>
+                            </div>
+
+                            <hr>
+                            <h5 class="text-secondary mb-3">Attribuer des Rôles</h5>
+                            <div class="mb-4">
+                                <div th:each="r : ${allRoles}" class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" name="roles" 
+                                           th:value="${r.roleName}" th:id="${r.roleName}">
+                                    <label class="form-check-label" th:for="${r.roleName}" th:text="${r.roleName}"></label>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Photo de l'agent</label>
+                                <input type="file" name="imageFile" class="form-control" accept="image/*">
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary btn-lg">Créer le compte</button>
+                                <a th:href="@{/admin/users}" class="btn btn-outline-secondary">Annuler</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
