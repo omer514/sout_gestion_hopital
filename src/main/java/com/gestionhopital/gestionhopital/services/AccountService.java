@@ -28,4 +28,6 @@ public interface AccountService {
     
     // Suppression
     void deleteUser(String username);
+    // pour modifier le mot de passe de patient 
+    void updateUserPassword(String username, String oldPassword, String newPassword);
 }

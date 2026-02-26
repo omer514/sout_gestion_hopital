@@ -4,9 +4,11 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Entity
 @Data @NoArgsConstructor @AllArgsConstructor
+@ToString(exclude = {"rendezVous", "specialites"}) // Exclue les listes
 public class Medecin {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

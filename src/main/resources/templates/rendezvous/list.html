@@ -7,10 +7,14 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <style>
+        .badge-avalider { background-color: #fd7e14; color: #fff; } /* Orange pour "A Valider" */
         .badge-attente { background-color: #ffc107; color: #000; }
         .badge-confirme { background-color: #198754; color: #fff; }
+        .badge-encours { background-color: #0dcaf0; color: #000; }
         .badge-annule { background-color: #dc3545; color: #fff; }
         .card-header { background: #212529 !important; }
+        .btn-group .btn { margin-right: 2px; }
+        .table-hover tbody tr:hover { background-color: #f8f9fa; }
     </style>
 </head>
 <body>
@@ -38,64 +42,85 @@
                                 <th>Heure</th>
                                 <th>Patient</th>
                                 <th>Médecin</th>
-                                <th>Statut</th>
-                                <th>Arrivée (Accueil)</th>
-                                <th>Actions</th>
+                                <th>Statut RDV</th>
+                                <th>Arrivée (Flux Accueil)</th>
+                                <th>Actions (Flux Médical)</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr th:each="r : ${listRDV}">
-                                <td th:text="${#dates.format(r.date, 'dd-MM-yyyy')}"></td>
+                                <td th:text="${r.date != null ? #dates.format(r.date, 'dd-MM-yyyy') : '--'}"></td>
                                 <td th:text="${r.heure}"></td>
-                                <td th:text="${r.patient.nom + ' ' + r.patient.prenom}"></td>
-                                <td th:text="${'Dr. ' + r.medecin.nom}"></td>
+                                <td class="fw-bold" th:text="${r.patient != null ? r.patient.nom + ' ' + r.patient.prenom : 'Inconnu'}"></td>
+                                <td th:text="${r.medecin != null ? 'Dr. ' + r.medecin.nom : 'Non assigné'}"></td>
+                                
                                 <td>
-                                    <span class="badge" 
-                                          th:classappend="${r.status.name() == 'EN_ATTENTE' ? 'badge-attente' : (r.status.name() == 'CONFIRME' ? 'badge-confirme' : 'badge-annule')}" 
-                                          th:text="${r.status}"></span>
+                                    <span th:if="${r.status != null}" 
+                                          class="badge" 
+                                          th:classappend="${#strings.toString(r.status) == 'A_VALIDER' ? 'badge-avalider' : 
+                                                           (#strings.toString(r.status) == 'EN_ATTENTE' ? 'badge-attente' : 
+                                                           (#strings.toString(r.status) == 'CONFIRME' ? 'badge-confirme' : 
+                                                           (#strings.toString(r.status) == 'EN_COURS' ? 'badge-encours' : 'badge-annule')))}" 
+                                          th:text="${#strings.toString(r.status) == 'A_VALIDER' ? 'À VALIDER' : r.status}"></span>
                                 </td>
                                 
                                 <td>
-                                    <div th:if="${r.status.name() == 'CONFIRME'}">
+                                    <span th:if="${#strings.toString(r.status) == 'A_VALIDER'}" class="text-muted small">
+                                        <i class="bi bi-hourglass-split"></i> Attente médecin
+                                    </span>
+
+                                    <div th:if="${#strings.toString(r.status) == 'CONFIRME' or #strings.toString(r.status) == 'EN_COURS'}">
                                         <a th:if="${!r.present}" 
                                            sec:authorize="hasAnyAuthority('ADMIN', 'ACCUEIL')"
                                            th:href="@{/admin/marquerPresent(id=${r.id})}" 
                                            class="btn btn-sm btn-outline-info">
-                                            <i class="bi bi-person-check"></i> Marquer Présent
+                                             <i class="bi bi-person-check"></i> Arrivé ?
                                         </a>
                                         <span th:if="${r.present}" class="badge bg-info text-dark">
-                                            <i class="bi bi-check-all"></i> Patient Présent
+                                             <i class="bi bi-check-all"></i> Présent en salle
                                         </span>
                                     </div>
-                                    <span th:if="${r.status.name() == 'EN_ATTENTE'}" class="text-muted small">En attente de validation</span>
-                                    <span th:if="${r.status.name() == 'ANNULE'}" class="text-danger small">RDV Annulé</span>
+                                    <span th:if="${#strings.toString(r.status) == 'ANNULE'}" class="text-danger small italic">Annulé</span>
                                 </td>
 
                                 <td class="text-center">
                                     <div class="btn-group">
                                         
-                                        <a th:if="${r.status.name() == 'EN_ATTENTE'}" 
-                                           sec:authorize="hasAnyAuthority('ADMIN', 'MEDECIN')"
-                                           th:href="@{/admin/confirmerRDV(id=${r.id})}" 
-                                           class="btn btn-success btn-sm" title="Valider médicalement">
-                                            <i class="bi bi-envelope-check"></i> Valider
-                                        </a>
+                                        <div th:if="${#strings.toString(r.status) == 'A_VALIDER'}">
+                                            <a sec:authorize="hasAnyAuthority('ADMIN', 'MEDECIN')"
+                                               th:href="@{/medecin/accepterRDV(id=${r.id})}" 
+                                               class="btn btn-success btn-sm me-1" title="Accepter">
+                                                <i class="bi bi-check-lg"></i>
+                                            </a>
+                                            <a sec:authorize="hasAnyAuthority('ADMIN', 'MEDECIN')"
+                                               th:href="@{/medecin/refuserRDV(id=${r.id})}" 
+                                               class="btn btn-danger btn-sm" title="Refuser">
+                                                <i class="bi bi-x-lg"></i>
+                                            </a>
+                                        </div>
 
-                                        <a th:if="${r.present && r.status.name() == 'CONFIRME'}" 
-                                           sec:authorize="hasAnyAuthority('ADMIN', 'MEDECIN')"
-                                           th:href="@{/admin/demarrerConsultation(id=${r.id})}" 
-                                           class="btn btn-primary btn-sm" title="Démarrer le soin">
-                                            <i class="bi bi-stethoscope"></i> Consulter
-                                        </a>
-                                        
+                                        <div th:if="${r.present && (#strings.toString(r.status) == 'CONFIRME' || #strings.toString(r.status) == 'EN_COURS')}" class="d-inline">
+                                            <a sec:authorize="hasAnyAuthority('ADMIN', 'MEDECIN')"
+                                               th:href="@{/medecin/dossierPatient(idRDV=${r.id})}" 
+                                               class="btn btn-warning btn-sm text-dark shadow-sm">
+                                                 <i class="bi bi-folder2-open"></i> Dossier
+                                            </a>
+
+                                            <a sec:authorize="hasAnyAuthority('ADMIN', 'MEDECIN')"
+                                               th:href="@{/admin/demarrerConsultation(id=${r.id})}" 
+                                               class="btn btn-primary btn-sm shadow-sm">
+                                                 <i class="bi bi-stethoscope"></i> 
+                                                 <span th:text="${#strings.toString(r.status) == 'EN_COURS' ? 'Reprendre' : 'Consulter'}"></span>
+                                            </a>
+                                        </div>
+
                                         <button type="button" 
-                                                th:if="${r.status.name() != 'ANNULE'}" 
+                                                th:if="${#strings.toString(r.status) != 'ANNULE' && #strings.toString(r.status) != 'EN_COURS' && #strings.toString(r.status) != 'A_VALIDER'}" 
                                                 sec:authorize="hasAnyAuthority('ADMIN', 'ACCUEIL')"
                                                 class="btn btn-outline-danger btn-sm"
-                                                th:onclick="'ouvrirModaleAnnulation(' + ${r.id} + ')'" title="Annuler le RDV">
+                                                th:onclick="'ouvrirModaleAnnulation(' + ${r.id} + ')'">
                                             <i class="bi bi-x-circle"></i>
                                         </button>
-                                        
                                     </div>
                                 </td>
                             </tr>
@@ -104,7 +129,7 @@
                 </div>
                 
                 <div th:if="${listRDV == null || listRDV.isEmpty()}" class="alert alert-light text-center border">
-                    <i class="bi bi-info-circle"></i> Aucun rendez-vous affiché pour votre profil.
+                    <i class="bi bi-info-circle"></i> Aucun rendez-vous pour le moment.
                 </div>
             </div>
         </div>
@@ -114,21 +139,19 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title"><i class="bi bi-shield-exclamation"></i> Motif d'annulation</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title"><i class="bi bi-exclamation-triangle"></i> Annulation de RDV</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <form th:action="@{/admin/annulerRDV}" method="get">
                     <div class="modal-body">
                         <input type="hidden" name="id" id="rdvIdHidden">
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Pourquoi annuler ce rendez-vous ?</label>
+                            <label class="form-label fw-bold">Motif de l'annulation :</label>
                             <select name="motif" class="form-select" required>
-                                <option value="" disabled selected>Choisir une raison...</option>
-                                <option value="Urgence médicale">Urgence médicale</option>
                                 <option value="Médecin absent">Médecin absent</option>
-                                <option value="Erreur de planification">Erreur de planification</option>
-                                <option value="Patient a appelé pour annuler">Patient a appelé pour annuler</option>
-                                <option value="Autre raison">Autre raison...</option>
+                                <option value="Urgence médicale">Urgence médicale</option>
+                                <option value="Patient absent">Patient absent</option>
+                                <option value="Autre">Autre raison...</option>
                             </select>
                         </div>
                     </div>

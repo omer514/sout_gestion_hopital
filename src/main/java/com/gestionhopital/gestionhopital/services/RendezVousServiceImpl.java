@@ -99,4 +99,19 @@ public class RendezVousServiceImpl implements RendezVousService {
             rendezvousRepository.save(rdv);
         }
     }
+
+
+
+    public void validerRendezVous(Long id) {
+    RendezVous rdv = rendezvousRepository.findById(id).get();
+    rdv.setStatus(StatusRDV.CONFIRME); // On valide
+    rendezvousRepository.save(rdv);
+}
+
+public void refuserRendezVous(Long id, String motif) {
+    RendezVous rdv = rendezvousRepository.findById(id).get();
+    rdv.setStatus(StatusRDV.ANNULE);
+    rdv.setMotifAnnulation(motif); // On explique pourquoi
+    rendezvousRepository.save(rdv);
+}
 }

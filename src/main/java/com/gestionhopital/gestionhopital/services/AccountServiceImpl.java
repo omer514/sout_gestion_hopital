@@ -151,4 +151,19 @@ public void updatePhoto(String username, String newPhotoName) {
         appUserRepository.save(user);
     }
 }
+
+
+@Override
+public void updateUserPassword(String username, String oldPassword, String newPassword) {
+    AppUser user = appUserRepository.findByUsername(username);
+    
+    // Vérifier si l'ancien mot de passe correspond (en utilisant PasswordEncoder)
+    if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+        throw new RuntimeException("Ancien mot de passe incorrect");
+    }
+    
+    // Encoder et sauvegarder le nouveau
+    user.setPassword(passwordEncoder.encode(newPassword));
+    appUserRepository.save(user);
+}
 }

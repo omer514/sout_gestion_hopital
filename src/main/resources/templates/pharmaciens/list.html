@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="template">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestion des Pharmaciens</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        .user-photo { width: 45px; height: 45px; object-fit: cover; border-radius: 50%; border: 2px solid #dee2e6; }
+    </style>
+</head>
+<body>
+
+        <div th:replace="~{fragments/header :: header}"></div>
+
+<div layout:fragment="content">
+    <div class="container mt-4">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                <h4><i class="bi bi-capsule"></i> Personnel de Pharmacie</h4>
+                <a sec:authorize="hasAuthority('ADMIN')" class="btn btn-outline-light btn-sm" th:href="@{/admin/formPharmacien}">
+                    <i class="bi bi-plus-lg"></i> Nouveau Pharmacien
+                </a>
+            </div>
+            <div class="card-body">
+                <form method="get" th:action="@{/admin/pharmaciens}" class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <input type="text" name="keyword" class="form-control" placeholder="Rechercher..." th:value="${keyword}">
+                            <button class="btn btn-success" type="submit">
+                                <i class="bi bi-search"></i> Rechercher
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Photo</th>
+                            <th>Nom & Prénom</th>
+                            <th>Téléphone</th>
+                            <th>Email</th>
+                            <th sec:authorize="hasAuthority('ADMIN')" class="text-center">Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="p : ${listPharmaciens}">
+                            <td>
+                                <img th:src="${p.user != null && p.user.photo != null} ? @{'/photos/' + ${p.user.photo}} : @{'/photos/default.png'}" 
+                                     class="user-photo shadow-sm" alt="Profile">
+                            </td>
+                            <td><span class="fw-bold" th:text="${p.nom + ' ' + p.prenom}"></span></td>
+                            <td th:text="${p.telephone}"></td>
+                            <td class="text-muted" th:text="${p.user != null ? p.user.email : 'N/A'}"></td>
+                            <td sec:authorize="hasAuthority('ADMIN')" class="text-center">
+                                <div class="btn-group">
+                                    <a th:href="@{/admin/pharmacienDetails(id=${p.id})}" class="btn btn-outline-info btn-sm" title="Détails">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a th:href="@{/admin/editPharmacien(id=${p.id})}" class="btn btn-outline-warning btn-sm" title="Modifier">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a onclick="return confirm('Supprimer ce pharmacien ?')" 
+                                       th:href="@{/admin/deletePharmacien(id=${p.id}, page=${currentPage}, keyword=${keyword})}" 
+                                       class="btn btn-outline-danger btn-sm" title="Supprimer">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(listPharmaciens)}">
+                            <td colspan="5" class="text-center text-muted py-4">Aucun pharmacien trouvé.</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <nav th:if="${pages != null}">
+                    <ul class="pagination justify-content-center">
+                        <li th:each="v,itemStatus : ${pages}" class="page-item" 
+                            th:classappend="${currentPage==itemStatus.index ? 'active' : ''}">
+                            <a class="page-link" th:href="@{/admin/pharmaciens(page=${itemStatus.index}, keyword=${keyword})}"
+                               th:text="${itemStatus.index + 1}"></a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.util.Collection;
+import lombok.ToString;
 
 /**
  * Entité représentant une spécialité médicale (ex: Cardiologie, Dentaire).
@@ -13,6 +14,7 @@ import java.util.Collection;
 @Data // Génère les Getters, Setters, toString, equals et hashCode
 @NoArgsConstructor // Génère un constructeur sans argument (obligatoire pour JPA)
 @AllArgsConstructor // Génère un constructeur avec tous les arguments
+@ToString(exclude = "medecins") // Exclue la liste des médecins
 public class Specialite {
     
     @Id 

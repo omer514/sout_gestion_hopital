@@ -12,7 +12,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-
 import jakarta.servlet.http.HttpServletResponse;
 
 @Configuration
@@ -31,44 +30,59 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
-        httpSecurity.csrf(csrf -> csrf.disable());
-
-        // 1. FILTRE JWT
-        httpSecurity.addFilterBefore(new JWTAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class);
-
-        // 2. Gestion de la session
+        
+        // 1. CONFIGURATION DE BASE
+        httpSecurity.csrf(csrf -> csrf.disable()); // Désactivé pour le développement
         httpSecurity.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED));
 
+        // 2. FILTRE JWT (Placé avant le filtre d'authentification standard)
+        httpSecurity.addFilterBefore(new JWTAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class);
+
+        // 3. GESTION DES AUTORISATIONS (ORDONNÉES)
         httpSecurity.authorizeHttpRequests(auth -> auth
-            // Ressources publiques
+            
+            // --- ACCÈS PUBLICS ---
             .requestMatchers("/login/**", "/webjars/**", "/css/**", "/js/**", "/images/**", "/photos/**").permitAll()
             .requestMatchers("/api/login/**").permitAll() 
-            
-            // API réservée à l'ADMIN
-            .requestMatchers("/api/**").hasAuthority("ADMIN") 
 
-            // --- EXCEPTIONS POUR ACCUEIL ET MEDECIN (DOIVENT ÊTRE AVANT /admin/**) ---
-            
-            // Autoriser spécifiquement les actions de gestion de rendez-vous pour l'Accueil, le Médecin et l'Admin
+            // --- ACCÈS LABORATOIRE ---
+            .requestMatchers("/labo/**").hasAnyAuthority("ADMIN", "LABO")
+
+            // --- ACCÈS MÉDICAL (PARTAGÉ : ADMIN, MÉDECIN, ACCUEIL) ---
+            // On regroupe ici tout ce qui concerne le suivi patient et les rendez-vous
             .requestMatchers(
                 "/admin/rendezvous/**", 
                 "/admin/marquerPresent/**", 
                 "/admin/confirmerRDV/**", 
                 "/admin/annulerRDV/**",
                 "/admin/formRendezVous/**",
-                "/admin/saveRendezVous/**"
+                "/admin/saveRendezVous/**",
+                "/admin/demarrerConsultation/**",
+                "/admin/saveConsultation/**",
+                "/admin/voirConsultation/**",
+                "/admin/patientDetails/**", // Débloqué pour le médecin ici
+                "/medecin/**"               // Toutes les actions spécifiques médecin
             ).hasAnyAuthority("ADMIN", "ACCUEIL", "MEDECIN")
-            
-            // Autoriser la gestion des patients pour l'Accueil et l'Admin
-            .requestMatchers("/admin/formPatients/**", "/admin/save/**").hasAnyAuthority("ADMIN", "ACCUEIL")
-            
-            // 3. TOUT le reste de /admin est strictement réservé à l'ADMIN
+
+            // --- ACCÈS RÉCEPTION (ADMIN + ACCUEIL uniquement) ---
+            // Création et modification de la fiche patient de base
+            .requestMatchers("/admin/formPatients/**", "/admin/save/**", "/admin/delete/**").hasAnyAuthority("ADMIN", "ACCUEIL")
+
+            // --- ACCÈS DASHBOARD (TOUS UTILISATEURS CONNECTÉS) ---
+            .requestMatchers("/dashboard/**").authenticated()
+
+            // --- ACCÈS API REST (ADMIN uniquement) ---
+            .requestMatchers("/api/**").hasAuthority("ADMIN") 
+
+            // --- ACCÈS ADMINISTRATION GÉNÉRALE (STRICT ADMIN) ---
+            // Toute autre URL commençant par /admin est réservée au super-admin
             .requestMatchers("/admin/**").hasAuthority("ADMIN")
             
+            // --- TOUT LE RESTE ---
             .anyRequest().authenticated()
         );
 
-        // 3. Empêcher la redirection HTML pour les requêtes API
+        // 4. GESTION DES ERREURS D'ACCÈS (Redirection vs API Error)
         httpSecurity.exceptionHandling(eh -> eh
             .authenticationEntryPoint((request, response, authException) -> {
                 if (request.getServletPath().startsWith("/api")) {
@@ -79,23 +93,19 @@ public class SecurityConfig {
             })
         );
 
-        // 4. FORM LOGIN AVEC REDIRECTION PERSONNALISÉE SELON LE RÔLE
+        // 5. CONFIGURATION DU FORMULAIRE DE CONNEXION
         httpSecurity.formLogin(form -> form
             .loginPage("/login")
-            .successHandler((request, response, authentication) -> {
-                boolean isMedecin = authentication.getAuthorities().stream()
-                        .anyMatch(a -> a.getAuthority().equals("MEDECIN"));
-                
-                if (isMedecin) {
-                    response.sendRedirect("/admin/rendezvous"); 
-                } else {
-                    response.sendRedirect("/dashboard");
-                }
-            })
+            .defaultSuccessUrl("/dashboard", true)
             .permitAll()
         );
 
-        httpSecurity.logout(logout -> logout.logoutRequestMatcher(new AntPathRequestMatcher("/logout")).permitAll());
+        // 6. CONFIGURATION DE LA DÉCONNEXION
+        httpSecurity.logout(logout -> logout
+            .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
+            .logoutSuccessUrl("/login?logout")
+            .permitAll()
+        );
 
         return httpSecurity.build();
     }

@@ -17,7 +17,7 @@ public class GestionHopitalApplication {
 CommandLineRunner commandLineRunner(AccountService accountService) {
     return args -> {
         // 1. Création des rôles un par un
-        String[] roles = {"ADMIN", "MEDECIN", "ACCUEIL", "PATIENT"};
+        String[] roles = {"ADMIN", "MEDECIN", "ACCUEIL", "PATIENT" , "LABO", "PHARMACIE"};
         for (String role : roles) {
             try { accountService.addNewRole(role); } catch (Exception e) { }
         }
@@ -27,6 +27,8 @@ CommandLineRunner commandLineRunner(AccountService accountService) {
             accountService.addNewUser("admin", "1234", "admin@gmail.com", "1234", "default.png");
             accountService.addNewUser("medecin", "1234medecin", "med@gmail.com", "1234", "default.png");
             accountService.addNewUser("accueil", "1234", "acc@gmail.com", "1234", "default.png");
+            accountService.addNewUser("labo", "labo", "labo@gmail.com", "1234", "default.png");
+            accountService.addNewUser("pharmacie", "pharmacie", "pharm@gmail.com", "1234", "default.png");
         } catch (Exception e) { }
 
         // 3. ASSOCIATION FORCEE (C'est ici que se remplit ta table vide !)
@@ -34,6 +36,8 @@ CommandLineRunner commandLineRunner(AccountService accountService) {
             accountService.addRoleToUser("admin", "ADMIN");
             accountService.addRoleToUser("medecin", "MEDECIN");
             accountService.addRoleToUser("accueil", "ACCUEIL");
+            accountService.addRoleToUser("labo", "LABO");       
+            accountService.addRoleToUser("pharmacie", "PHARMACIE"); 
             
             System.out.println("Données d'initialisation créées avec succès !");
         } catch (Exception e) {

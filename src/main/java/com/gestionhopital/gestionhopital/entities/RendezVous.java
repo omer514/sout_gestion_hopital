@@ -34,4 +34,7 @@ public class RendezVous {
 
     @ManyToOne
     private Medecin medecin;
+
+@OneToOne(mappedBy = "rendezVous", cascade = CascadeType.ALL)
+private Consultation consultation;
 }

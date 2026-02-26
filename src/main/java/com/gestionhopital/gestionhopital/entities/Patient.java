@@ -38,6 +38,8 @@ public class Patient {
 
     private boolean active = false; // Sera activé lors de la 1ère consultation (UC105)
 
+    private String matricule; // Ex: PAT-2026-X
+
     @OneToOne
     private AppUser appUser; // Le compte utilisateur lié au patient
 }

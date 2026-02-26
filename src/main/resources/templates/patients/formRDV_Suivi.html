@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security6">
+<head>
+    <meta charset="UTF-8">
+    <title>Demande de Rendez-vous de Suivi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        body { background-color: #f8f9fa; }
+        .card-appointment { border-radius: 15px; overflow: hidden; }
+        .header-appointment { background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); color: white; padding: 2rem; }
+        .form-label { fw-bold; color: #495057; }
+    </style>
+</head>
+<body>
+    <div th:replace="~{fragments/header :: header}"></div>
+
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card card-appointment shadow-lg border-0">
+                    <div class="header-appointment text-center">
+                        <i class="bi bi-calendar2-plus fs-1"></i>
+                        <h2 class="mt-2">Prendre un Rendez-vous</h2>
+                        <p class="mb-0 opacity-75">Complétez les informations pour solliciter une consultation</p>
+                    </div>
+                    
+                    <div class="card-body p-4">
+                        <form th:action="@{/patient/saveDemandeRDV}" th:object="${rendezvous}" method="post">
+                            
+
+                            <div class="mb-4">
+                                <label class="form-label fw-bold"><i class="bi bi-person-badge me-2"></i>Votre Médecin</label>
+                                <select th:field="*{medecin.id}" class="form-select form-select-lg shadow-sm" required>
+                                    <option value="" disabled>-- Sélectionner un médecin --</option>
+                                    <option th:each="m : ${medecins}" 
+                                            th:value="${m.id}" 
+                                            th:text="${'Dr. ' + m.nom + ' ' + m.prenom + ' (' + m.specialite + ')'}"
+                                            th:selected="${m.id == rendezvous.medecin?.id}">
+                                    </option>
+                                </select>
+                                <div class="form-text mt-2 text-primary">
+                                    <i class="bi bi-info-circle"></i> Nous avons présélectionné votre médecin habituel pour faciliter le suivi.
+                                </div>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <div class="row">
+                                <div class="col-md-6 mb-4">
+                                    <label class="form-label fw-bold"><i class="bi bi-calendar-date me-2"></i>Date souhaitée</label>
+                                    <input type="date" th:field="*{date}" class="form-control form-control-lg shadow-sm" 
+                                           th:min="${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}" required>
+                                </div>
+                                <div class="col-md-6 mb-4">
+                                    <label class="form-label fw-bold"><i class="bi bi-clock me-2"></i>Heure souhaitée</label>
+                                    <input type="time" th:field="*{heure}" class="form-control form-control-lg shadow-sm" required>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-bold"><i class="bi bi-chat-left-text me-2"></i>Motif de la demande</label>
+                                <textarea th:field="*{motif}" class="form-control shadow-sm" rows="3" 
+                                          placeholder="Expliquez brièvement l'objet de votre consultation (ex: Suivi traitement, douleur persistante...)"></textarea>
+                            </div>
+
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                                <a th:href="@{/patient/dashboard}" class="btn btn-light border btn-lg px-4 me-md-2">Annuler</a>
+                                <button type="submit" class="btn btn-primary btn-lg px-5 shadow">
+                                    <i class="bi bi-send-check me-2"></i>Envoyer la demande
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <p class="text-center text-muted mt-4 small">
+                    Votre demande sera soumise à la validation du médecin. <br>
+                    Vous recevrez une notification dès que le créneau sera confirmé.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

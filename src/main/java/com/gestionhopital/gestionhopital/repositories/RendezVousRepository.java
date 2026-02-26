@@ -14,13 +14,25 @@ import java.util.List;
 
 @Repository
 public interface RendezVousRepository extends JpaRepository<RendezVous, Long> {
+    
     // Vérifie si le médecin a déjà un RDV à ce moment précis
     boolean existsByMedecinAndDateAndHeureAndStatusNot(Medecin medecin, Date date, String heure, StatusRDV status);
 
     List<RendezVous> findByMedecinId(Long medecinId);
     List<RendezVous> findByPatientId(Long patientId);
 
-    // On traverse les relations : RendezVous -> Medecin -> AppUser -> Email
+    // Recherche simple par email (via AppUser)
     @Query("select r from RendezVous r where r.medecin.appUser.email = :email")
     List<RendezVous> findByMedecinEmail(@Param("email") String email);
+
+    // CORRECTIF : Utilisation d'une Query manuelle pour traverser vers AppUser.email
+    @Query("select r from RendezVous r where r.medecin.appUser.email = :email and r.status not in :statuses")
+    List<RendezVous> findByMedecinEmailAndStatusNotIn(
+        @Param("email") String email, 
+        @Param("statuses") List<StatusRDV> statuses
+    );
+
+    RendezVous findFirstByPatientEmailOrderByDateDesc(String email);
+
+List<RendezVous> findByPatientIdAndStatusNotInOrderByDateAscHeureAsc(Long patientId, List<StatusRDV> status);
 }

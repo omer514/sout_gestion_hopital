@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="template">
+<head>
+    <meta charset="UTF-8">
+    <title>Saisie de Résultats Groupés</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        .examen-row { transition: 0.3s; border-left: 4px solid #0dcaf0; }
+        .examen-row:hover { background-color: #f8f9fa; }
+        .done-check { cursor: pointer; font-size: 1.5rem; color: #dee2e6; transition: 0.3s; }
+        .done-check.active { color: #198754; }
+    </style>
+</head>
+<body>
+
+<div layout:fragment="content">
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="card shadow border-0">
+                    <div class="card-header bg-dark text-white py-3 d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0"><i class="bi bi-person-circle"></i> Dossier Patient : 
+                            <span th:text="${patient.nom + ' ' + patient.prenom}" class="text-info"></span>
+                        </h4>
+                        <span class="badge bg-secondary">Consultation #<span th:text="${consultation.id}"></span></span>
+                    </div>
+
+                    <div class="card-body p-4">
+                        <div class="alert alert-info mb-4 shadow-sm">
+                            <i class="bi bi-info-circle-fill"></i> Saisissez les résultats pour chaque examen ci-dessous. Une fois terminé, cliquez sur <strong>"Enregistrer tout le dossier"</strong>.
+                        </div>
+
+                        <form th:action="@{/labo/saveResultat}" method="post">
+                            
+                            <div th:each="analyse, iter : ${consultation.analyses}" class="examen-row bg-light rounded p-3 mb-4 shadow-sm">
+                                <div class="row align-items-center">
+                                    
+                                    <div class="col-md-3">
+                                        <h6 class="text-primary mb-1 fw-bold" th:text="${analyse.typeAnalyse.nom}">Examen</h6>
+                                        <small class="text-muted">Réf: <span th:text="${analyse.typeAnalyse.valeursReference}"></span></small>
+                                        <input type="hidden" name="idAnalyse" th:value="${analyse.id}">
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <div class="input-group">
+                                            <input type="text" name="resultat" class="form-control" 
+                                                   placeholder="Résultat" th:required="${analyse.statut == 'DEMANDE'}">
+                                            <span class="input-group-text bg-white small" th:text="${analyse.typeAnalyse.unite}"></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-5">
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-chat-text"></i></span>
+                                            <input type="text" name="commentaire" class="form-control border-start-0" 
+                                                   placeholder="Observation (RAS, Urgent...)">
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-1 text-center">
+                                        <div class="done-check" onclick="this.classList.toggle('active')" title="Marquer comme prêt">
+                                            <i class="bi bi-check-circle-fill"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center border-top pt-4">
+                                <a th:href="@{/labo/analyses}" class="btn btn-outline-secondary px-4">
+                                    <i class="bi bi-arrow-left"></i> Retour
+                                </a>
+                                <div>
+                                    <button type="reset" class="btn btn-light me-2 text-muted">Réinitialiser</button>
+                                    <button type="submit" class="btn btn-success btn-lg px-5 shadow">
+                                        <i class="bi bi-cloud-check"></i> Enregistrer tout le dossier
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Petit script pour que l'icône de check s'active automatiquement quand on écrit un résultat
+    document.querySelectorAll('input[name="resultat"]').forEach(input => {
+        input.addEventListener('input', function() {
+            const check = this.closest('.examen-row').querySelector('.done-check');
+            if(this.value.length > 0) check.classList.add('active');
+            else check.classList.remove('active');
+        });
+    });
+</script>
+
+</body>
+</html>
