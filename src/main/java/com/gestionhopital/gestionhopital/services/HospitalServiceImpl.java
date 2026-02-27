@@ -2,6 +2,8 @@ package com.gestionhopital.gestionhopital.services;
 
 import com.gestionhopital.gestionhopital.entities.AppUser;
 import com.gestionhopital.gestionhopital.entities.Patient;
+import com.gestionhopital.gestionhopital.entities.Consultation;
+import com.gestionhopital.gestionhopital.repositories.ConsultationRepository;
 import com.gestionhopital.gestionhopital.repositories.PatientRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -15,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class HospitalServiceImpl implements HospitalService {
     private PatientRepository patientRepository;
     private AccountService accountService; // Injection de ton service de compte
+    private ConsultationRepository consultationRepository; 
 
     @Override
     public Patient savePatient(Patient patient) {
@@ -67,5 +70,10 @@ public class HospitalServiceImpl implements HospitalService {
     @Override
     public void deletePatient(Long id) {
         patientRepository.deleteById(id);
+    }
+
+    @Override
+    public Consultation getConsultation(Long id) {
+        return consultationRepository.findById(id).orElse(null);
     }
 }

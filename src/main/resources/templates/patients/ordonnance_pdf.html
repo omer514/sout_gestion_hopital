@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        /* Configuration de la page */
+        @page { size: A4; margin: 0; }
+        body { 
+            font-family: 'Helvetica', 'Arial', sans-serif; 
+            color: #333; 
+            margin: 0; 
+            padding: 40px;
+            position: relative;
+        }
+
+        /* FILIGRANE */
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 600px;
+            margin-left: -300px;
+            text-align: center;
+            font-size: 70px;
+            color: rgba(200, 200, 200, 0.1); 
+            font-weight: bold;
+            transform: rotate(-45deg);
+            z-index: -100;
+            text-transform: uppercase;
+        }
+
+        /* ENTÊTE */
+        .header { 
+            border-bottom: 3px solid #0dcaf0; 
+            padding-bottom: 15px; 
+            margin-bottom: 30px; 
+        }
+        .hospital-name { 
+            font-size: 28px; 
+            color: #0aa2c0; 
+            font-weight: bold; 
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        .hospital-contact { font-size: 12px; color: #666; }
+
+        /* TITRE */
+        .doc-title-container { text-align: center; margin: 30px 0; }
+        .doc-title { 
+            font-size: 24px; 
+            font-weight: bold;
+            color: #444;
+            border: 2px solid #444;
+            padding: 8px 25px;
+            display: inline-block;
+            border-radius: 8px;
+        }
+
+        /* INFOS PATIENT */
+        .info-card {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            border-left: 5px solid #0dcaf0;
+        }
+        .info-line { margin-bottom: 5px; font-size: 14px; }
+        .label { font-weight: bold; color: #555; width: 110px; display: inline-block; }
+
+        /* TABLEAU */
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { 
+            background-color: #0dcaf0; 
+            color: white; 
+            border: 1px solid #0aa2c0; 
+            padding: 10px; 
+            text-align: left; 
+            font-size: 14px;
+        }
+        td { 
+            border: 1px solid #dee2e6; 
+            padding: 10px; 
+            font-size: 13px; 
+            vertical-align: top;
+        }
+        tr:nth-child(even) { background-color: #fcfcfc; }
+
+        /* FOOTER ET CACHET */
+        .footer { margin-top: 50px; }
+        .date-place { text-align: right; font-size: 14px; font-weight: bold; margin-bottom: 15px; }
+        
+        .signature-container {
+            float: right;
+            width: 200px;
+            text-align: center;
+        }
+
+        .stamp-svg {
+            transform: rotate(-5deg); /* Légère inclinaison réaliste */
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="watermark">GEST-SANTÉ OFFICIAL</div>
+
+    <div class="header">
+        <div class="hospital-name">HÔPITAL GEST-SANTÉ</div>
+        <div class="hospital-contact">
+            Avenue de la République, Cotonou, Bénin<br/>
+            Contact: +229 01 02 03 04 | Email: contact@gest-sante.bj
+        </div>
+    </div>
+
+    <div class="doc-title-container">
+        <div class="doc-title">ORDONNANCE MÉDICALE</div>
+    </div>
+
+    <div class="info-card">
+        <div class="info-line">
+            <span class="label">Patient :</span> 
+            <span style="font-size: 16px; font-weight: bold;" th:text="${consultation.rendezVous.patient.nom + ' ' + consultation.rendezVous.patient.prenom}">NOM PRENOM</span>
+        </div>
+        <div class="info-line">
+            <span class="label">Matricule :</span> 
+            <span th:text="${consultation.rendezVous.patient.matricule}">PAT-2026-X</span>
+        </div>
+        <div class="info-line">
+            <span class="label">Date :</span> 
+            <span th:text="${#dates.format(consultation.dateConsultation, 'dd MMMM yyyy')}">01 Janvier 2026</span>
+        </div>
+    </div>
+
+    <p style="font-weight: bold; color: #0aa2c0; margin-bottom: 10px;">TRAITEMENTS PRESCRITS :</p>
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 35%;">Médicament</th>
+                <th style="width: 35%;">Posologie / Instructions</th>
+                <th style="width: 15%;">Durée</th>
+                <th style="width: 15%;">Qté</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="lp : ${consultation.prescriptions}">
+                <td><strong th:text="${lp.medicament.nom}">Nom</strong></td>
+                <td>
+                    <span th:text="${lp.posologie}">Posologie</span><br/>
+                    <small style="color: #666;" th:if="${lp.instructions}" th:text="'Note: ' + ${lp.instructions}"></small>
+                </td>
+                <td th:text="${lp.dureeTraitement + ' jours'}">7 jours</td>
+                <td th:text="${lp.quantite}">1</td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(consultation.prescriptions)}">
+                <td colspan="4" style="text-align: center; font-style: italic;">Aucun médicament prescrit.</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="footer">
+        <div class="date-place">
+            Fait à Cotonou, le <span th:text="${#dates.format(new java.util.Date(), 'dd/MM/yyyy')}">27/02/2026</span>
+        </div>
+        
+        <div class="signature-container">
+            <svg class="stamp-svg" width="140" height="140" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="100" cy="100" r="85" fill="none" stroke="#1a4a9e" stroke-width="3" />
+                <circle cx="100" cy="100" r="75" fill="none" stroke="#1a4a9e" stroke-width="1" />
+                
+                <text x="100" y="45" fill="#1a4a9e" font-size="11" font-weight="bold" text-anchor="middle">HÔPITAL GEST-SANTÉ</text>
+                
+                <line x1="45" y1="75" x2="155" y2="75" stroke="#1a4a9e" stroke-width="2" />
+                
+                <text x="100" y="105" fill="#1a4a9e" font-size="16" font-weight="bold" text-anchor="middle">
+                    Dr. <tspan th:text="${consultation.rendezVous.medecin.nom}">NOM</tspan>
+                </text>
+                
+                <line x1="45" y1="125" x2="155" y2="125" stroke="#1a4a9e" stroke-width="2" />
+                
+                <text x="100" y="155" fill="#1a4a9e" font-size="11" font-weight="bold" text-anchor="middle">SERVICE MÉDICAL</text>
+            </svg>
+
+            <div style="margin-top: 5px;">
+                <div style="font-weight: bold; font-size: 14px; border-top: 2px solid #000; padding-top: 5px; color: #000;">
+                    SIGNATURE DU MÉDECIN
+                </div>
+                <div style="font-size: 13px; font-weight: bold; color: #000; margin-top: 3px;" 
+                     th:text="${'Dr. ' + consultation.rendezVous.medecin.prenom + ' ' + consultation.rendezVous.medecin.nom}">
+                    Dr. Prénom Nom
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

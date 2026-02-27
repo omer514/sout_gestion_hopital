@@ -2,6 +2,7 @@ package com.gestionhopital.gestionhopital.web;
 
 import com.gestionhopital.gestionhopital.entities.Patient;
 import com.gestionhopital.gestionhopital.entities.AppUser; 
+import com.gestionhopital.gestionhopital.entities.Consultation;
 import com.gestionhopital.gestionhopital.services.HospitalService;
 import com.gestionhopital.gestionhopital.repositories.PatientRepository;
 import com.gestionhopital.gestionhopital.services.AccountService;
@@ -17,6 +18,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.thymeleaf.context.Context;
+import java.io.StringReader;
+import com.itextpdf.html2pdf.HtmlConverter;
+
 
 @Controller
 @AllArgsConstructor
@@ -24,6 +31,7 @@ public class PatientController {
     private HospitalService hospitalService;
     private PatientRepository patientRepository;
     private AccountService accountService;
+    private final org.thymeleaf.TemplateEngine templateEngine; 
 
     @GetMapping("/patients")
     public String listPatients(Model model,
@@ -134,5 +142,24 @@ public String save(Model model, @Valid Patient patient, BindingResult bindingRes
         }
         return "redirect:/patient/profil"; // Correction du chemin
     }
+
+
+
+@GetMapping("/patient/ordonnance/pdf/{id}")
+public void generateOrdonnancePdf(@PathVariable Long id, HttpServletResponse response) throws Exception {
+    Consultation consultation = hospitalService.getConsultation(id);
+    
+    // 1. Préparer les données pour Thymeleaf
+    Context context = new Context();
+    context.setVariable("consultation", consultation);
+    String htmlContent = templateEngine.process("patients/ordonnance_pdf", context);
+    
+    // 2. Configurer la réponse
+    response.setContentType("application/pdf");
+    response.setHeader("Content-Disposition", "attachment; filename=Ordonnance_" + id + ".pdf");
+    
+    // 3. Conversion MAGIQUE : Tout le HTML/CSS devient un PDF parfait
+    HtmlConverter.convertToPdf(htmlContent, response.getOutputStream());
+}
 }
 

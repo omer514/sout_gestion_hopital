@@ -95,6 +95,11 @@
 			<artifactId>spring-boot-starter-mail</artifactId>
 		</dependency>
 
+		<dependency>
+    <groupId>com.itextpdf</groupId>
+    <artifactId>html2pdf</artifactId>
+    <version>4.0.5</version>
+</dependency>
 		
 	</dependencies>
 

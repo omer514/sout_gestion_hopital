@@ -135,10 +135,12 @@
                                 <div class="mt-4">
                                     <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
                                         <h6 class="text-info fw-bold mb-0 small uppercase"><i class="bi bi-capsule"></i> Traitement prescrit</h6>
-                                        <a sec:authorize="hasAuthority('PATIENT')" th:if="${!#lists.isEmpty(c.prescriptions)}" 
-                                           th:href="@{/patient/ordonnance/pdf(id=${c.id})}" class="btn btn-sm btn-primary">
-                                            <i class="bi bi-download"></i> PDF
-                                        </a>
+                                       <a sec:authorize="hasAuthority('PATIENT')" 
+                                            th:if="${!#lists.isEmpty(c.prescriptions)}" 
+                                            th:href="@{/patient/ordonnance/pdf/{id}(id=${c.id})}" 
+                                            class="btn btn-sm btn-primary shadow-sm">
+                                                <i class="bi bi-file-earmark-pdf-fill me-1"></i> PDF
+                                         </a>
                                     </div>
                                     
                                     <div th:if="${#lists.isEmpty(c.prescriptions)}" class="text-muted small italic">Aucune prescription.</div>
